@@ -1,4 +1,4 @@
-source plugins.vim
+source ~/plugins.vim
 
 " See :h buffer-hidden, :h 'hidden'
 set hidden
