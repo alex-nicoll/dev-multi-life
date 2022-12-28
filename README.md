@@ -1,5 +1,7 @@
-# dev-multi-life
+# multi-life-dev
 This repo packages up my [multi-life](https://github.com/alex-nicoll/multi-life) development environment as a Docker image, allowing it to be deployed quickly on Linux, Windows, and macOS. I made this mostly to get familiar with Docker.
+
+The environment consists of Debian bullseye, Go, multi-life's Go code dependencies, Vim, and some useful Vim plugins and configuration.
 
 ## Requirements
 
@@ -19,12 +21,12 @@ docker run --rm -it \
 -v ~/.gitconfig:/root/.gitconfig \
 -v ~/.ssh:/root/.ssh \
 -p 127.0.0.1:8080:8080 \
-alexnicoll/dev-multi-life
+alexnicoll/multi-life-dev
 ```
 
 Replace `~/multi-life` with the path to the cloned multi-life repository. The `-v ~/multi-life:/root/multi-life` argument bind mounts the directory into the container. Any changes made in the container will be reflected on the host. `.gitconfig` and `.ssh` are bind mounted as well; these lines can be removed if they are unwanted.
 
-The `p 127.0.0.1:8080:8080` argument maps port 8080 of the container to port 8080 on 127.0.0.1 of the host. To allow external connections (e.g., to develop and test the app on a server), remove the `127.0.0.1`.
+The `-p 127.0.0.1:8080:8080` argument maps port 8080 of the container to port 8080 on 127.0.0.1 of the host. To allow external connections (e.g., to develop and test the app on a server), remove the `127.0.0.1`.
 
 ## Notes
 
