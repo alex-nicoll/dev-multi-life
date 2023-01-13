@@ -20,14 +20,14 @@ docker run --rm -it \
 -v ~/multi-life:/root/multi-life \
 -v ~/.gitconfig:/root/.gitconfig \
 -v ~/.ssh:/root/.ssh \
--v vol-multi-life-dev:/root/host \
+-v vol-multi-life-dev:/root/.host \
 -p 127.0.0.1:8080:8080 \
 alexnicoll/multi-life-dev
 ```
 
 Replace `~/multi-life` with the path to the cloned multi-life repository. The `-v ~/multi-life:/root/multi-life` argument bind mounts the directory into the container. Any changes made in the container will be reflected on the host. `.gitconfig` and `.ssh` are bind mounted as well; these lines can be removed if they are unwanted.
 
-The `-v vol-multi-life-dev:/root/host` argument mounts a Docker volume named vol-multi-life-dev to /root/host, creating the volume if it doesn't exist. The volume stores the container's bash history. In other words, you can exit (destroy) and reenter (recreate) the container while retaining its bash history. The volume can be renamed, but the mount point inside the container must remain /root/host.
+The `-v vol-multi-life-dev:/root/.host` argument mounts a Docker volume named vol-multi-life-dev to /root/.host, creating the volume if it doesn't exist. The volume stores the bash history, Go build cache, and Go module cache. The volume can be renamed, but the mount point inside the container must remain /root/.host.
 
 The `-p 127.0.0.1:8080:8080` argument maps port 8080 of the container to port 8080 on 127.0.0.1 of the host. To allow external connections (e.g., to develop and test the app on a server), remove the `127.0.0.1`.
 

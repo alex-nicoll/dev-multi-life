@@ -14,12 +14,14 @@ COPY .vimrc .
 # Set TERM such that the solarized Vim plugin works correctly.
 ENV TERM xterm-256color
 
-# Install multi-life Go dependencies.
-RUN curl \
-    -LO https://raw.githubusercontent.com/alex-nicoll/multi-life/main/go.mod \
-    -LO https://raw.githubusercontent.com/alex-nicoll/multi-life/main/go.sum && \
-    go mod download && \
-    rm go.mod go.sum
+# /root/.host must be mapped to a volume at run time.
+# Store bash history in /root/.host
+RUN /bin/bash -c 'echo -e "\nHISTFILE=\"/root/.host/bash_history\"" >> .bashrc'
+# Clear the Go build cache and module cache of data created while installing
+# vim-go. We no longer need it, and the cache locations are about to change.
+RUN ["rm", "-r", "/root/.cache/go-build", "/go/pkg/mod"]
+# Remove .cache if it is now empty.
+RUN /bin/bash -c 'rm -d /root/.cache || true'
+# Store the Go build cache and module cache in /root/.host
+RUN ["go", "env", "-w", "GOCACHE=/root/.host/go-cache/build", "GOMODCACHE=/root/.host/go-cache/mod"]
 
-# Store history /root/host, which should have a volume mounted to it at run time.
-RUN /bin/bash -c 'echo -e "\nHISTFILE=\"/root/host/.bash_history\"" >> .bashrc'
