@@ -1,7 +1,7 @@
 # multi-life-dev
 This repo packages up my [multi-life](https://github.com/alex-nicoll/multi-life) development environment as a Docker image, allowing it to be deployed quickly on Linux, Windows, and macOS. I made this mostly to get familiar with Docker.
 
-The environment consists of Debian bullseye, Go, multi-life's Go code dependencies, Vim, and some useful Vim plugins and configuration.
+The environment includes Debian bullseye, Go, Go static analysis tools, Vim, some useful Vim plugins and configuration, and more.
 
 ## Requirements
 
