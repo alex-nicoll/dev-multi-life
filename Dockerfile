@@ -1,5 +1,10 @@
 FROM golang:1.19.4-bullseye
 
+# Install static analysis tools.
+RUN ["go", "install", "github.com/mgechev/revive@latest"]
+RUN ["go", "install", "honnef.co/go/tools/cmd/staticcheck@latest"]
+RUN ["go", "install", "github.com/kisielk/errcheck@latest"]
+
 RUN apt-get update && apt-get install --yes vim
 
 WORKDIR /root
@@ -24,4 +29,3 @@ RUN ["rm", "-r", "/root/.cache/go-build", "/go/pkg/mod"]
 RUN /bin/bash -c 'rm -d /root/.cache || true'
 # Store the Go build cache and module cache in /root/.host
 RUN ["go", "env", "-w", "GOCACHE=/root/.host/go-cache/build", "GOMODCACHE=/root/.host/go-cache/mod"]
-
