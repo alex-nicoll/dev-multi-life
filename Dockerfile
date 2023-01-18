@@ -29,3 +29,6 @@ RUN ["rm", "-r", "/root/.cache/go-build", "/go/pkg/mod"]
 RUN /bin/bash -c 'rm -d /root/.cache || true'
 # Store the Go build cache and module cache in /root/.host
 RUN ["go", "env", "-w", "GOCACHE=/root/.host/go-cache/build", "GOMODCACHE=/root/.host/go-cache/mod"]
+
+# Enable git completions.
+RUN /bin/bash -c 'echo -e ". /usr/share/bash-completion/completions/git" >> .bashrc'
