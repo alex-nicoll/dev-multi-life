@@ -6,30 +6,29 @@ The environment includes Debian bullseye, Go, Go static analysis tools, Vim, som
 ## Requirements
 
 - amd64 architecture
-- git
 - [Docker](https://docs.docker.com/get-docker/)
 - terminal with Solarized Dark color palette
   - This can be achieved on Windows by installing Microsoft Terminal.
 
 ## Installation
 
-1. Clone [multi-life](https://github.com/alex-nicoll/multi-life).
-2. Run the following in a shell:
 ```
 docker run --rm -it \
--v ~/multi-life:/root/multi-life \
+-v vol-multi-life-dev:/root/host \
+-v vol-multi-life-dev-staticcheck:/root/.cache/staticcheck \
 -v ~/.gitconfig:/root/.gitconfig \
 -v ~/.ssh:/root/.ssh \
--v vol-multi-life-dev:/root/.host \
 -p 127.0.0.1:8080:8080 \
 alexnicoll/multi-life-dev
 ```
 
-Replace `~/multi-life` with the path to the cloned multi-life repository. The `-v ~/multi-life:/root/multi-life` argument bind mounts the directory into the container. Any changes made in the container will be reflected on the host. `.gitconfig` and `.ssh` are bind mounted as well; these lines can be removed if they are unwanted.
+`-v vol-multi-life-dev:/root/host` mounts a Docker volume named vol-multi-life-dev to /root/host, creating the volume if it doesn't exist. This is where you should `git clone` multi-life. The volume also stores the bash history, Go build cache, and Go module cache. The volume can be renamed, but the mount point inside the container must remain /root/host.
 
-The `-v vol-multi-life-dev:/root/.host` argument mounts a Docker volume named vol-multi-life-dev to /root/.host, creating the volume if it doesn't exist. The volume stores the bash history, Go build cache, and Go module cache. The volume can be renamed, but the mount point inside the container must remain /root/.host.
+`-v vol-multi-life-dev-staticcheck:/root/.cache/staticcheck` stores the staticcheck cache in a volume. A separate volume is needed because the location of the cache can't be changed to be inside /root/host.
 
-The `-p 127.0.0.1:8080:8080` argument maps port 8080 of the container to port 8080 on 127.0.0.1 of the host. To allow external connections (e.g., to develop and test the app on a server), remove the `127.0.0.1`.
+`-v ~/.gitconfig:/root/.gitconfig` and `-v ~/.ssh/root/.ssh` bind mount git configuration and SSH keys into the container. Any changes made in the container will be reflected on the host. These lines can be removed if they are unwanted.
+
+`-p 127.0.0.1:8080:8080` maps port 8080 of the container to port 8080 on 127.0.0.1 of the host. To allow external connections (e.g., to develop and test the app on a server), remove the `127.0.0.1`.
 
 ## Notes
 
