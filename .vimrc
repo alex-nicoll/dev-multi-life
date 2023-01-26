@@ -40,7 +40,3 @@ hi clear SignColumn
 
 " Highlight DiffText same as DiffChange to make diffs more readable.
 hi! link DiffText DiffChange
-
-" configure vim_current_word
-let g:vim_current_word#highlight_delay = 400
-let g:vim_current_word#highlight_current_word = 0
