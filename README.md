@@ -1,38 +1,70 @@
-# multi-life-dev
-This repo packages up my [multi-life](https://github.com/alex-nicoll/multi-life) development environment as a Docker image, allowing it to be deployed quickly on Linux, Windows, and macOS. I made this mostly to get familiar with Docker.
+# go-editor
 
-The environment includes Debian bullseye, Go, Go static analysis tools, Vim, some useful Vim plugins and configuration, and more.
+This repository contains a Dockerfile that adds Vim, gopls, and some configuration on top of a Go build environment.
+
+## Motivation
+
+I currently build Go code for a project inside a container, but use Vim + [vim-go](https://github.com/fatih/vim-go) as an editor outside the container. This creates the problem of the build process and editor relying on different Go installations. The solution I arrived at is to run the editor inside a container, on top of the same image as the build process. This repository could be used as a template by others wishing to do the same thing.
 
 ## Requirements
 
 - amd64 architecture
 - [Docker](https://docs.docker.com/get-docker/)
-- terminal with Solarized Dark color palette
-  - This can be achieved on Windows by installing Microsoft Terminal.
 
-## Installation
+## Usage
+
+### 1: Pull and run the image
 
 ```
 docker run --rm -it \
--v vol-multi-life-dev:/root/host \
--v vol-multi-life-dev-staticcheck:/root/.cache/staticcheck \
--v ~/.gitconfig:/root/.gitconfig \
--v ~/.ssh:/root/.ssh \
--p 127.0.0.1:8080:8080 \
-alexnicoll/multi-life-dev
+-v ~/repo:/root/repo \
+-w /root/repo \
+-v ~/.vimrc:/root/.vimrc \
+-v vol-go-editor-vim:/root/.vim \
+-v vol-go-editor:/root/host \
+-e TERM=xterm-256color \
+alexnicoll/go-editor
 ```
 
-`-v vol-multi-life-dev:/root/host` mounts a Docker volume named vol-multi-life-dev to /root/host, creating the volume if it doesn't exist. This is where you should `git clone` multi-life. The volume also stores the bash history, Go build cache, and Go module cache. The volume can be renamed, but the mount point inside the container must remain /root/host.
+`-v ~/repo:/root/repo` bind mounts a Go repo into the container, and `-w /root/repo` sets the working directory when the container starts.
 
-`-v vol-multi-life-dev-staticcheck:/root/.cache/staticcheck` stores the staticcheck cache in a volume. A separate volume is needed because the location of the cache can't be changed to be inside /root/host.
+`-v ~/.vimrc:/root/.vimrc` bind mounts the home directory's .vimrc into the container. This could point to a Go-specific .vimrc instead of ~/.vimrc.
 
-`-v ~/.gitconfig:/root/.gitconfig` and `-v ~/.ssh/root/.ssh` bind mount git configuration and SSH keys into the container. Any changes made in the container will be reflected on the host. These lines can be removed if they are unwanted.
+`-v vol-go-editor-vim:/root/.vim` mounts a Docker volume named vol-go-editor-vim to /root/.vim, creating the volume if it doesn't exist. This has the effect of persisting the Vim plugin manager and plugins after the container is destroyed.
 
-`-p 127.0.0.1:8080:8080` maps port 8080 of the container to port 8080 on 127.0.0.1 of the host. To allow external connections (e.g., to develop and test the app on a server), remove the `127.0.0.1`.
+`-v vol-go-editor:/root/host` mounts a volume containing the Go build cache and Go module cache. These are used under the hood by gopls. The volume can be renamed, but the mount point must be the same as the one referenced in the Dockerfile (/root/host).
 
-## Notes
+`-e TERM=xterm-256color` is needed in order to get plugins like [vim-colors-solarized](https://github.com/altercation/vim-colors-solarized) to work correctly. It can be removed if there is no such plugin.
 
-When building the image using the `docker build` command, the plugin installation layer may take a very long time to complete, and will have no visible output, appearing to hang. The reason for the lack of output is that Vim is being run in silent (batch) mode. This is because when Vim is run in normal mode, the editor opens up and makes a mess of the `docker build` output. If you would like to run Vim in normal mode and see plugin installation progress, remove the `-E` and `-s` flags from the `vim` command in the Dockerfile:
+Note: Instead of bind mounting .vimrc and .vim, we could have a fixed .vimrc and plugins already installed as part of the image. Bind mounting addresses the use case of multiple people with different Vim configurations using the same image.
+
+### 2: Set up Vim
+
+1. Install a plugin manager like [vim-plug](https://github.com/junegunn/vim-plug).
+2. Add vim-go (or whichever plugins are desired) to .vimrc. E.g., if using vim-plug:
 ```
-RUN ["vim", "-u", "plugins.vim", "+PlugInstall", "+qall"]
+call plug#begin('~/.vim/plugged')
+Plug 'fatih/vim-go', { 'tag': 'v1.28' }
+call plug#end()
+```
+3. Restart Vim or run `:source %` to reload the .vimrc, if necessary.
+4. Install plugins. E.g., if using vim-plug, run :PlugInstall. Then restart Vim.
+
+### 3: Go code
+
+You now have everything necessary to edit code inside a container. You can exit and destroy the container by logging out, and recreate it by running the `docker run` command again. You can also detach from the container with CTRL-P+CTRL-Q, and reattach with `docker attach <container name>`.
+
+### Appendix: Adding features to vim-go
+
+If using vim-go, note that not all of its dependencies are included in the image. gopls is installed, which enables you to get around, write, and refactor Go code, but advanced features like debugging won't work. If more features are desired, then their dependencies need to be built into the image. Alternatively, image users can do the following to enable features without modifying the Dockerfile:
+
+1. Add something like this to .vimrc:
+```
+let g:go_bin_path = "/root/host/go/bin"
+```
+This causes vim-go to install binaries to the specified directory (see :h g:go\_bin\_path for more details). If the `docker run` command from step 1 was used verbatim, then this particular directory is inside a volume.
+
+2. Now you can run the following to add debugging support:
+```
+:GoInstallBinaries dlv
 ```
