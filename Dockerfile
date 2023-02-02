@@ -1,4 +1,4 @@
-FROM alexnicoll/go-build-env
+FROM golang:1.19.5-bullseye
 
 RUN apt-get update && apt-get install --yes vim
 
